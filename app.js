@@ -1,51 +1,69 @@
 const express = require('express');
 const app = express();
 const { exec } = require('child_process');
+const mime = require('mime-types');
+const fs = require('fs');
 
+const mimeMap = {
+  'png': 'image/png',
+  'jpg': 'image/jpeg',
+  'jpeg': 'image/jpeg',
+  'gif': 'image/gif',
+  'tiff': 'image/tiff',
+  'tif': 'image/tiff',
+  'bmp': 'image/bmp',
+  'heic': 'image/heic',
+  'heif': 'image/heif',
+  'dcm': 'image/dcm'
+}
 
-// DICOM to JPEG
-app.get('/convert-dicom', (req, res) => {
-  exec('python3 dicom.py', (error, stdout, stderr) => {
+// get the list of files in the data folder
+const files = fs.readdirSync('data');
+console.log('before', files);
+// Ignore DS_Store & Desktop.ini if it exists in the folder using a loop
+for (let i = 0; i < files.length; i++) {
+  if (files[i] === '.DS_Store' || files[i] === 'desktop.ini') {
+    files.splice(i, 1);
+    i--;
+  }
+}
+console.log('after', files);
+
+const convertDicom = () => {
+  exec('python3 -c "import pydicom; import matplotlib.pyplot as plt; dcm = pydicom.dcmread(\'data/img.dcm\'); image = dcm.pixel_array; plt.imsave(\'convert/testDICOM.jpg\', image, cmap=plt.cm.bone)"', (error, stdout, stderr) => {
     if (error) {
       console.error(`Erreur d'exécution du script : ${error}`);
-      res.status(500).send(`Erreur d'exécution du script : ${error}`);
       return;
     }
     console.log(`stdout: ${stdout}`);
     console.error(`stderr: ${stderr}`);
-    res.send('Les fichiers DICOM ont été convertis avec succès.');
   });
-});
+};
+convertDicom();
 
-// HEIF to JPEG
-app.get('/convert-heif', (req, res) => {
-  exec('python3 heif.py', (error, stdout, stderr) => {
+const convertHeif = () => {
+  exec('python3 -c "from PIL import Image; from pillow_heif import register_heif_opener; register_heif_opener(); im = Image.open(\'data/img.heic\'); im.convert(\'RGB\').save(\'convert/testHEIC.jpg\', \'JPEG\')"', (error, stdout, stderr) => {
     if (error) {
       console.error(`Erreur d'exécution du script : ${error}`);
-      res.status(500).send(`Erreur d'exécution du script : ${error}`);
       return;
     }
     console.log(`stdout: ${stdout}`);
     console.error(`stderr: ${stderr}`);
-    res.send('Les fichiers HEIF ont été convertis avec succès.');
   });
-});
+};
+convertHeif();
 
-// TIFF to JPEG
-app.get('/convert-tiff', (req, res) => {
-  exec('python3 tiff.py', (error, stdout, stderr) => {
+const convertTiff = () => {
+  exec('python3 -c "from PIL import Image; im = Image.open(\'data/img.tiff\'); im.convert(\'RGB\').save(\'convert/testTIFF.jpg\', \'JPEG\')"', (error, stdout, stderr) => {
     if (error) {
       console.error(`Erreur d'exécution du script : ${error}`);
-      res.status(500).send(`Erreur d'exécution du script : ${error}`);
       return;
     }
     console.log(`stdout: ${stdout}`);
     console.error(`stderr: ${stderr}`);
-    res.send('Les fichiers TIFF ont été convertis avec succès.');
   });
-});
-
-
+};
+convertTiff();
 
 // Give an acces for server.js
 module.exports = app;

@@ -6,7 +6,7 @@ npm install to install node.js dependencies and start pip install to install pyt
 
 npm run start and go to http://localhost:8000
 
-### Run api by paths :
+### Run Api by Paths :
 
 /convert-heif - convert heif to jpg
 /convert-dicom - convert dicom to jpg
